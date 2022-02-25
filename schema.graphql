@@ -1,6 +1,10 @@
-type ExampleEntity @entity {
+type SystemState @entity {
+  " SystemState is a Singleton entity. ID will always be '0' "
   id: ID!
-  count: BigInt!
-  owner: Bytes! # address
-  spender: Bytes! # address
+
+  " NEWO contract address on ETH Mainnet "
+  coinAddress: Bytes!
+
+  " Total circulating supply of NEWO "
+  circulatingSupply: BigDecimal!
 }

@@ -1,4 +1,6 @@
-specVersion: 0.0.1
+specVersion: 0.0.2
+description: The Graph protocol subgraph for NEWO
+repository: https://github.com/brokenomics/newo-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
@@ -8,9 +10,11 @@ dataSources:
     source:
       address: "0x98585dFc8d9e7D48F0b1aE47ce33332CF4237D96"
       abi: NewOrder
+      startBlock: 14253783 # A recent block that has a contract interaction, use this for development for faster syncs
+      # startBlock: 14120487 # NEWO's first block
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Approval
@@ -22,6 +26,10 @@ dataSources:
       abis:
         - name: NewOrder
           file: ./abis/NewOrder.json
+        - name: SLP
+          file: ./abis/SLP.json
+        - name: Vesting
+          file: ./abis/Vesting.json
       eventHandlers:
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval

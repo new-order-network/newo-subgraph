@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { Address, BigDecimal, Bytes, ethereum } from "@graphprotocol/graph-ts"
 import {
   NewOrder,
   Approval,
@@ -8,75 +8,85 @@ import {
   Transfer,
   Unpaused
 } from "../generated/NewOrder/NewOrder"
-import { ExampleEntity } from "../generated/schema"
+import { Vesting } from "../generated/NewOrder/Vesting"
+import { SLP } from "../generated/NewOrder/SLP"
+import { SystemState } from "../generated/schema"
+import { addressMap, lockedTokens, vestingContracts } from "./utils/addresses"
+import { tryNEWOBalanceOf, tryCalcMaxWithdraw, trySLPBalanceOf, trySLPTotalSupply, tryNEWOTotalSupply } from "./utils/readContract"
+
+// Contract events, each is called when its corresponding NEWO contract interaction is triggered
 
 export function handleApproval(event: Approval): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
-
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
-
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.owner = event.params.owner
-  entity.spender = event.params.spender
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.allowance(...)
-  // - contract.approve(...)
-  // - contract.balanceLocked(...)
-  // - contract.balanceOf(...)
-  // - contract.balanceUnlocked(...)
-  // - contract.calcMaxTransferrable(...)
-  // - contract.cliffTime(...)
-  // - contract.decimals(...)
-  // - contract.decreaseAllowance(...)
-  // - contract.disbursementPeriod(...)
-  // - contract.increaseAllowance(...)
-  // - contract.name(...)
-  // - contract.owner(...)
-  // - contract.paused(...)
-  // - contract.symbol(...)
-  // - contract.timelockedTokens(...)
-  // - contract.totalSupply(...)
-  // - contract.transfer(...)
-  // - contract.transferFrom(...)
-  // - contract.vestTime(...)
+  updateSystemState(event)
 }
 
-export function handleNewTokenLock(event: NewTokenLock): void {}
+export function handleNewTokenLock(event: NewTokenLock): void {
+  updateSystemState(event)
+}
 
-export function handleOwnershipTransferred(event: OwnershipTransferred): void {}
+export function handleOwnershipTransferred(event: OwnershipTransferred): void {
+  updateSystemState(event)
+}
 
-export function handlePaused(event: Paused): void {}
+export function handlePaused(event: Paused): void {
+  updateSystemState(event)
+}
 
-export function handleTransfer(event: Transfer): void {}
+export function handleTransfer(event: Transfer): void {
+  updateSystemState(event)
+}
 
-export function handleUnpaused(event: Unpaused): void {}
+export function handleUnpaused(event: Unpaused): void {
+  updateSystemState(event)
+}
+
+// Call this periodically to update system state
+// For now, this is triggered by every contract interaction (see above methods)
+function updateSystemState(event: ethereum.Event): void {
+  let address = addressMap.get('NEWO')
+
+  // Load SystemState, or instantiate for the first time
+  let systemState = SystemState.load("0")
+  if (!systemState) {
+    systemState = new SystemState("0")
+    systemState.coinAddress = Bytes.fromByteArray(address)
+    systemState.circulatingSupply = BigDecimal.zero()
+  }
+
+  // Update values that change, for now just circulating supply
+  systemState.circulatingSupply = determineCirculatingSupply()
+  systemState.save()
+}
+
+// Computes circulating supply by subtracting locked tokens from total supply
+function determineCirculatingSupply(): BigDecimal {
+  let contract = NewOrder.bind(addressMap.get('NEWO') as Address)
+
+  let totalLockedBalances = BigDecimal.zero()
+  for (let i=0; i<lockedTokens.length; i++) {
+    totalLockedBalances = totalLockedBalances.plus(tryNEWOBalanceOf(contract, lockedTokens[i]))
+  }
+
+
+  let totalVestingBalances = BigDecimal.zero()
+  for (let i=0; i<vestingContracts.length; i++) {
+    let vestingContract = Vesting.bind(vestingContracts[i])
+    let vestingBalance = tryNEWOBalanceOf(contract, vestingContracts[i])
+    let maxWithdraw = tryCalcMaxWithdraw(vestingContract)
+    totalVestingBalances = totalVestingBalances.plus(vestingBalance).minus(maxWithdraw)
+  }
+
+  let slpContract = SLP.bind(addressMap.get('SLP_TOKEN_ADDRESS'))
+  let newoInLpPool = tryNEWOBalanceOf(contract, addressMap.get('NEWO') as Address)
+  let gnosisSlpBalance = trySLPBalanceOf(slpContract, addressMap.get('GNOSIS_SAFE_ADDRESS'))
+  let slpTotalSupply = trySLPTotalSupply(slpContract)
+  let lockedInLp = gnosisSlpBalance.div(slpTotalSupply).times(newoInLpPool)
+  
+  let oneWaySwapBalance = tryNEWOBalanceOf(contract, addressMap.get('ONE_WAY_SWAP_ADDRESS'))
+
+  let totalSupply = tryNEWOTotalSupply(contract)
+  let safeBalance = tryNEWOBalanceOf(contract, addressMap.get('GNOSIS_SAFE_ADDRESS'))
+
+  let circulatingSupply = (totalSupply.minus(safeBalance).minus(totalLockedBalances).minus(totalVestingBalances).minus(lockedInLp).minus(oneWaySwapBalance)).div(BigDecimal.fromString("1000000000000000000"))
+  return circulatingSupply
+};

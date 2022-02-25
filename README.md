@@ -16,17 +16,17 @@ npm install
 
 To build the graph after making changes to schema.graphql
 ```
-graph codegen
+npm codegen
 ```
 
 To build after making TypeScript changes
 ```
-graph build
+npm build
 ```
 
 To deploy to Subgraph Studio so you can sync and use the playground to query against the graph
 ```
-graph deploy --studio new-order
+npm deploy
 ```
 
 Subgraph Studio link: https://thegraph.com/studio/subgraph/new-order/

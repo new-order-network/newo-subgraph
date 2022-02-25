@@ -88,4 +88,4 @@ function determineCirculatingSupply(): BigDecimal {
 
   let circulatingSupply = (totalSupply.minus(safeBalance).minus(totalLockedBalances).minus(totalVestingBalances).minus(lockedInLp).minus(oneWaySwapBalance)).div(BigDecimal.fromString("1000000000000000000"))
   return circulatingSupply
-};
+}

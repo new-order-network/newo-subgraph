@@ -67,7 +67,6 @@ function determineCirculatingSupply(): BigDecimal {
     totalLockedBalances = totalLockedBalances.plus(tryNEWOBalanceOf(contract, lockedTokens[i]))
   }
 
-
   let totalVestingBalances = BigDecimal.zero()
   for (let i=0; i<vestingContracts.length; i++) {
     let vestingContract = Vesting.bind(vestingContracts[i])

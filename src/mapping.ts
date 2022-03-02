@@ -6,13 +6,26 @@ import {
   OwnershipTransferred,
   Paused,
   Transfer,
-  Unpaused
+  Unpaused,
 } from "../generated/NewOrder/NewOrder"
 import { Vesting } from "../generated/NewOrder/Vesting"
 import { SLP } from "../generated/NewOrder/SLP"
 import { SystemState } from "../generated/schema"
-import { addressMap, lockedTokens, vestingContracts } from "./utils/addresses"
-import { tryNEWOBalanceOf, tryCalcMaxWithdraw, trySLPBalanceOf, trySLPTotalSupply, tryNEWOTotalSupply } from "./utils/readContract"
+import {
+  NEWO_TOKEN_ADDRESS,
+  SLP_TOKEN_ADDRESS,
+  GNOSIS_SAFE_ADDRESS,
+  ONE_WAY_SWAP_ADDRESS,
+  LOCKED_TOKEN_ADDRESS_LIST,
+  VESTING_CONTRACTS_ADDRESS_LIST,
+} from "./utils/addresses"
+import {
+  tryNEWOBalanceOf,
+  tryCalcMaxWithdraw,
+  trySLPBalanceOf,
+  trySLPTotalSupply,
+  tryNEWOTotalSupply,
+} from "./utils/readContract"
 
 // Contract events, each is called when its corresponding NEWO contract interaction is triggered
 
@@ -43,13 +56,12 @@ export function handleUnpaused(event: Unpaused): void {
 // Call this periodically to update system state
 // For now, this is triggered by every contract interaction (see above methods)
 function updateSystemState(event: ethereum.Event): void {
-  let address = addressMap.get('NEWO')
-
   // Load SystemState, or instantiate for the first time
   let systemState = SystemState.load("0")
+
   if (!systemState) {
     systemState = new SystemState("0")
-    systemState.coinAddress = Bytes.fromByteArray(address)
+    systemState.coinAddress = Bytes.fromByteArray(NEWO_TOKEN_ADDRESS)
     systemState.circulatingSupply = BigDecimal.zero()
   }
 
@@ -60,32 +72,47 @@ function updateSystemState(event: ethereum.Event): void {
 
 // Computes circulating supply by subtracting locked tokens from total supply
 function determineCirculatingSupply(): BigDecimal {
-  let contract = NewOrder.bind(addressMap.get('NEWO') as Address)
+  let contract = NewOrder.bind(NEWO_TOKEN_ADDRESS)
 
+  // Total NEWO token supply
+  let totalSupply = tryNEWOTotalSupply(contract)
+
+  // Locked token balance total
   let totalLockedBalances = BigDecimal.zero()
-  for (let i=0; i<lockedTokens.length; i++) {
-    totalLockedBalances = totalLockedBalances.plus(tryNEWOBalanceOf(contract, lockedTokens[i]))
+  for (let i = 0; i < LOCKED_TOKEN_ADDRESS_LIST.length; i++) {
+    totalLockedBalances = totalLockedBalances.plus(
+      tryNEWOBalanceOf(contract, LOCKED_TOKEN_ADDRESS_LIST[i])
+    )
   }
 
+  // Vesting contract balance total
   let totalVestingBalances = BigDecimal.zero()
-  for (let i=0; i<vestingContracts.length; i++) {
-    let vestingContract = Vesting.bind(vestingContracts[i])
-    let vestingBalance = tryNEWOBalanceOf(contract, vestingContracts[i])
+  for (let i = 0; i < VESTING_CONTRACTS_ADDRESS_LIST.length; i++) {
+    let vestingContract = Vesting.bind(VESTING_CONTRACTS_ADDRESS_LIST[i])
+    let vestingBalance = tryNEWOBalanceOf(contract, VESTING_CONTRACTS_ADDRESS_LIST[i])
     let maxWithdraw = tryCalcMaxWithdraw(vestingContract)
+
     totalVestingBalances = totalVestingBalances.plus(vestingBalance).minus(maxWithdraw)
   }
 
-  let slpContract = SLP.bind(addressMap.get('SLP_TOKEN_ADDRESS'))
-  let newoInLpPool = tryNEWOBalanceOf(contract, addressMap.get('NEWO') as Address)
-  let gnosisSlpBalance = trySLPBalanceOf(slpContract, addressMap.get('GNOSIS_SAFE_ADDRESS'))
+  // Supply locked in sushi liquidy pools
+  let slpContract = SLP.bind(SLP_TOKEN_ADDRESS)
+  let newoInLpPool = tryNEWOBalanceOf(contract, NEWO_TOKEN_ADDRESS)
+  let gnosisSlpBalance = trySLPBalanceOf(slpContract, GNOSIS_SAFE_ADDRESS)
   let slpTotalSupply = trySLPTotalSupply(slpContract)
   let lockedInLp = gnosisSlpBalance.div(slpTotalSupply).times(newoInLpPool)
-  
-  let oneWaySwapBalance = tryNEWOBalanceOf(contract, addressMap.get('ONE_WAY_SWAP_ADDRESS'))
 
-  let totalSupply = tryNEWOTotalSupply(contract)
-  let safeBalance = tryNEWOBalanceOf(contract, addressMap.get('GNOSIS_SAFE_ADDRESS'))
+  // Gnosis and swap contract supply
+  let safeBalance = tryNEWOBalanceOf(contract, GNOSIS_SAFE_ADDRESS)
+  let oneWaySwapBalance = tryNEWOBalanceOf(contract, ONE_WAY_SWAP_ADDRESS)
 
-  let circulatingSupply = (totalSupply.minus(safeBalance).minus(totalLockedBalances).minus(totalVestingBalances).minus(lockedInLp).minus(oneWaySwapBalance)).div(BigDecimal.fromString("1000000000000000000"))
+  let circulatingSupply = totalSupply
+    .minus(totalLockedBalances)
+    .minus(totalVestingBalances)
+    .minus(lockedInLp)
+    .minus(safeBalance)
+    .minus(oneWaySwapBalance)
+    .div(BigDecimal.fromString("1000000000000000000"))
+
   return circulatingSupply
 }

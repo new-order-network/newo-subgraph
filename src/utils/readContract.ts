@@ -15,7 +15,7 @@ export function tryNEWOBalanceOf(contract: NewOrder, address: Address): BigDecim
   }
   return balanceOf
 }
-  
+
 export function trySLPBalanceOf(contract: SLP, address: Address): BigDecimal {
   let balanceOf = BigDecimal.zero()
   let tryBalanceOf = contract.try_balanceOf(address)
@@ -26,7 +26,7 @@ export function trySLPBalanceOf(contract: SLP, address: Address): BigDecimal {
   }
   return balanceOf
 }
-  
+
 export function tryNEWOTotalSupply(contract: NewOrder): BigDecimal {
   let totalSupply = BigDecimal.zero()
   let tryTotalSupply = contract.try_totalSupply()
@@ -37,7 +37,7 @@ export function tryNEWOTotalSupply(contract: NewOrder): BigDecimal {
   }
   return totalSupply
 }
-  
+
 export function trySLPTotalSupply(contract: SLP): BigDecimal {
   let totalSupply = BigDecimal.zero()
   let tryTotalSupply = contract.try_totalSupply()
@@ -48,7 +48,7 @@ export function trySLPTotalSupply(contract: SLP): BigDecimal {
   }
   return totalSupply
 }
-  
+
 export function tryCalcMaxWithdraw(contract: Vesting): BigDecimal {
   let maxWithdraw = BigDecimal.zero()
   let tryMaxWithdraw = contract.try_calcMaxWithdraw()

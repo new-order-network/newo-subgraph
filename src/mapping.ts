@@ -28,8 +28,6 @@ import {
   tryNEWOTotalSupply,
 } from "./utils/readContract"
 
-// Contract events, each is called when its corresponding NEWO contract interaction is triggered
-
 export function handleApproval(event: Approval): void {
   updateSystemState(event)
 }
@@ -63,11 +61,11 @@ function updateSystemState(event: ethereum.Event): void {
   if (!systemState) {
     systemState = new SystemState("0")
     systemState.coinAddress = Bytes.fromByteArray(NEWO_TOKEN_ADDRESS)
-    systemState.circulatingSupply = BigDecimal.zero()
+    systemState.ethCirculatingSupply = BigDecimal.zero()
   }
 
   // Update values that change, for now just circulating supply
-  systemState.circulatingSupply = determineCirculatingSupply()
+  systemState.ethCirculatingSupply = determineCirculatingSupply()
   systemState.save()
 }
 

@@ -5,6 +5,6 @@ type SystemState @entity {
   " NEWO contract address on ETH Mainnet "
   coinAddress: Bytes!
 
-  " Total circulating supply of NEWO "
-  circulatingSupply: BigDecimal!
+  " Total circulating supply of NEWO on Ethereum Mainnet "
+  ethCirculatingSupply: BigDecimal!
 }

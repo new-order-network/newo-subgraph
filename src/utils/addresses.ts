@@ -4,6 +4,7 @@ export let NEWO_TOKEN_ADDRESS = Address.fromString("0x98585dFc8d9e7D48F0b1aE47ce
 export let SLP_TOKEN_ADDRESS = Address.fromString("0xc08ED9a9ABEAbcC53875787573DC32Eee5E43513")
 export let GNOSIS_SAFE_ADDRESS = Address.fromString("0x4a848F44146Ca6D1D6AA34bcdF3C41093deF1761")
 export let ONE_WAY_SWAP_ADDRESS = Address.fromString("0xb3c60348A8f8eD8B260FD1966c9f2b740e6caedF")
+export let SYNAPSE_ADDRESS = Address.fromString("0x2796317b0fF8538F253012862c06787Adfb8cEb6")
 
 // Locked tokens addresses
 export let LOCKED_TOKEN_ADDRESS_LIST = mapStringsToAddresses([

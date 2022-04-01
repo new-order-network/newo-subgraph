@@ -18,6 +18,7 @@ import {
   ONE_WAY_SWAP_ADDRESS,
   LOCKED_TOKEN_ADDRESS_LIST,
   VESTING_CONTRACTS_ADDRESS_LIST,
+  SYNAPSE_ADDRESS,
 } from "./utils/addresses"
 import {
   tryNEWOBalanceOf,
@@ -106,12 +107,16 @@ function determineCirculatingSupply(): BigDecimal {
   let safeBalance = tryNEWOBalanceOf(contract, GNOSIS_SAFE_ADDRESS)
   let oneWaySwapBalance = tryNEWOBalanceOf(contract, ONE_WAY_SWAP_ADDRESS)
 
+  // Synapse address (tokens here have been bridged to AVAX)
+  let synapseBalance = tryNEWOBalanceOf(contract, SYNAPSE_ADDRESS)
+
   let circulatingSupply = totalSupply
     .minus(totalLockedBalances)
     .minus(totalVestingBalances)
     .minus(lockedInLp)
     .minus(safeBalance)
     .minus(oneWaySwapBalance)
+    .minus(synapseBalance)
     .div(BigDecimal.fromString("1000000000000000000"))
 
   return circulatingSupply

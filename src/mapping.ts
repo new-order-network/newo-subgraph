@@ -96,7 +96,7 @@ function determineCirculatingSupply(): BigDecimal {
 
   // Supply locked in sushi liquidy pools
   let slpContract = SLP.bind(SLP_TOKEN_ADDRESS)
-  let newoInLpPool = tryNEWOBalanceOf(contract, NEWO_TOKEN_ADDRESS)
+  let newoInLpPool = tryNEWOBalanceOf(contract, SLP_TOKEN_ADDRESS)
   let gnosisSlpBalance = trySLPBalanceOf(slpContract, GNOSIS_SAFE_ADDRESS)
   let slpTotalSupply = trySLPTotalSupply(slpContract)
   let lockedInLp = gnosisSlpBalance.div(slpTotalSupply).times(newoInLpPool)

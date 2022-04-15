@@ -7,7 +7,7 @@ A Graph protocol subgraph for NEWO
 To pull the code:
 
 ```
-git clone https://github.com/brokenomics/newo-subgraph
+git clone https://github.com/new-order-network/newo-subgraph
 cd newo-subgraph
 ```
 
@@ -35,4 +35,7 @@ To deploy to Subgraph Studio so you can sync and use the playground to query aga
 npm run deploy
 ```
 
-Subgraph Studio link: https://thegraph.com/studio/subgraph/new-order/
+## Deployments
+
+On Chain: https://thegraph.com/explorer/subgraph?id=CYAGuJheTmK2nYk5eradYoRvY6rpiKoZcPRmyPK4LcoJ
+Hosted: https://thegraph.com/hosted-service/subgraph/new-order-network/new-order

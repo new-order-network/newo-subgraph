@@ -90,10 +90,10 @@ export let VESTING_CONTRACTS_ADDRESS_LIST = mapStringsToAddresses([
 // TODO: Look into a cleaner way to map this array
 // WebAssembly won't compile a simple .map(val => Address.fromString(val) as Address)
 // So for now I've made this helper method to loop over the array and return a new array of Addresses
-function mapStringsToAddresses(strings: string[]): Address[] {
+function mapStringsToAddresses(strings: string[]): StaticArray<Address> {
   let addresses: Address[] = new Array<Address>()
   for (let i = 0; i < strings.length; i++) {
     addresses.push(Address.fromString(strings[i]) as Address)
   }
-  return addresses
+  return StaticArray.fromArray(addresses)
 }

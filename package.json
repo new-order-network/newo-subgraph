@@ -2,15 +2,17 @@
   "name": "new-order",
   "license": "UNLICENSED",
   "scripts": {
+    "auth:hosted": "graph auth --product hosted-service 603dce6229ed4c2c915ee6a6b828284a",
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ new-order",
+    "deploy": "graph deploy --studio new-order",
+    "deploy:hosted": "graph deploy --product hosted-service new-order-network/new-order",
     "create-local": "graph create --node http://localhost:8020/ new-order",
     "remove-local": "graph remove --node http://localhost:8020/ new-order",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 new-order"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.27.0",
-    "@graphprotocol/graph-ts": "^0.24.1"
+    "@graphprotocol/graph-cli": "0.28.1",
+    "@graphprotocol/graph-ts": "0.26.0"
   }
 }

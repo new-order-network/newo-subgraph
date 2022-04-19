@@ -1,6 +1,6 @@
 specVersion: 0.0.2
 description: The Graph protocol subgraph for NEWO
-repository: https://github.com/brokenomics/newo-subgraph
+repository: https://github.com/new-order-network/newo-subgraph
 schema:
   file: ./schema.graphql
 dataSources:

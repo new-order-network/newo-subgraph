@@ -2,7 +2,7 @@
   "name": "new-order",
   "license": "UNLICENSED",
   "scripts": {
-    "auth:hosted": "graph auth --product hosted-service 603dce6229ed4c2c915ee6a6b828284a",
+    "auth:hosted": "graph auth --product hosted-service",
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --studio new-order",

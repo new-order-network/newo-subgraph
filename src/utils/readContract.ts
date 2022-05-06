@@ -16,6 +16,17 @@ export function tryNEWOBalanceOf(contract: NewOrder, address: Address): BigDecim
   return balanceOf
 }
 
+export function tryNEWOBalanceLocked(contract: NewOrder, address: Address): BigDecimal {
+  let balanceLocked = BigDecimal.zero()
+  let tryBalanceLocked = contract.try_balanceLocked(address)
+  if (!tryBalanceLocked.reverted) {
+    balanceLocked = tryBalanceLocked.value.toBigDecimal()
+  } else {
+    log.info("NEWO balanceLocked reverted", [])
+  }
+  return balanceLocked
+}
+
 export function trySLPBalanceOf(contract: SLP, address: Address): BigDecimal {
   let balanceOf = BigDecimal.zero()
   let tryBalanceOf = contract.try_balanceOf(address)

@@ -21,6 +21,7 @@ import {
   SYNAPSE_ADDRESS,
 } from "./utils/addresses"
 import {
+  tryNEWOBalanceLocked,
   tryNEWOBalanceOf,
   tryCalcMaxWithdraw,
   trySLPBalanceOf,
@@ -61,11 +62,11 @@ function updateSystemState(event: ethereum.Event): void {
   if (!systemState) {
     systemState = new SystemState("0")
     systemState.coinAddress = Bytes.fromByteArray(NEWO_TOKEN_ADDRESS)
-    systemState.ethCirculatingSupply = BigDecimal.zero()
+    systemState.circulatingSupply = BigDecimal.zero()
   }
 
   // Update values that change, for now just circulating supply
-  systemState.ethCirculatingSupply = determineCirculatingSupply()
+  systemState.circulatingSupply = determineCirculatingSupply()
   systemState.save()
 }
 
@@ -80,7 +81,7 @@ function determineCirculatingSupply(): BigDecimal {
   let totalLockedBalances = BigDecimal.zero()
   for (let i = 0; i < LOCKED_TOKEN_ADDRESS_LIST.length; i++) {
     totalLockedBalances = totalLockedBalances.plus(
-      tryNEWOBalanceOf(contract, LOCKED_TOKEN_ADDRESS_LIST[i])
+      tryNEWOBalanceLocked(contract, LOCKED_TOKEN_ADDRESS_LIST[i])
     )
   }
 

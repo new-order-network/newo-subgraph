@@ -5,3 +5,6 @@ node_modules/
 subgraph.yaml
 build/
 generated/
+
+# Vscode
+/.vscode

@@ -7,6 +7,9 @@ export let ONE_WAY_SWAP_ADDRESS = Address.fromString("0xb3c60348A8f8eD8B260FD196
 export let SYNAPSE_ADDRESS = Address.fromString("0x2796317b0fF8538F253012862c06787Adfb8cEb6")
 export let VENEWO_TOKEN_ADDRESS = Address.fromString("0x44dd83E0598e7A3709cF0b2e59D3319418068a65")
 
+// Addresses that holds NEWO and went nowhere (burned)
+export let SUSHISWAP_ADDRESS = Address.fromString('0x519cb5f4076feaf1811aa2ff25c59ddcff19e55d')
+
 // Locked tokens addresses
 export let LOCKED_TOKEN_ADDRESS_LIST = mapStringsToAddresses([
   "0x8e72416494994E1a25d6ebFFE53ce9fdA3278bBc",

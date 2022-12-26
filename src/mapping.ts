@@ -18,8 +18,8 @@ import {
   ONE_WAY_SWAP_ADDRESS,
   LOCKED_TOKEN_ADDRESS_LIST,
   VESTING_CONTRACTS_ADDRESS_LIST,
-  SYNAPSE_ADDRESS,
   VENEWO_TOKEN_ADDRESS,
+  SUSHISWAP_ADDRESS,
 } from "./utils/addresses"
 import {
   tryNEWOBalanceLocked,
@@ -89,11 +89,9 @@ function determineCirculatingSupply(): BigDecimal {
   // Vesting contract balance total
   let totalVestingBalances = BigDecimal.zero()
   for (let i = 0; i < VESTING_CONTRACTS_ADDRESS_LIST.length; i++) {
-    let vestingContract = Vesting.bind(VESTING_CONTRACTS_ADDRESS_LIST[i])
     let vestingBalance = tryNEWOBalanceOf(contract, VESTING_CONTRACTS_ADDRESS_LIST[i])
-    let maxWithdraw = tryCalcMaxWithdraw(vestingContract)
 
-    totalVestingBalances = totalVestingBalances.plus(vestingBalance).minus(maxWithdraw)
+    totalVestingBalances = totalVestingBalances.plus(vestingBalance)
   }
 
   // Supply locked in sushi liquidy pools
@@ -110,6 +108,9 @@ function determineCirculatingSupply(): BigDecimal {
   // Supply locked in veNEWO
   let veNewoBalance = tryNEWOBalanceOf(contract, VENEWO_TOKEN_ADDRESS)
 
+  // Supply locked in veNEWO
+  let sushiswapBalance = tryNEWOBalanceOf(contract, SUSHISWAP_ADDRESS)
+
   let circulatingSupply = totalSupply
     .minus(totalLockedBalances)
     .minus(totalVestingBalances)
@@ -117,6 +118,7 @@ function determineCirculatingSupply(): BigDecimal {
     .minus(safeBalance)
     .minus(oneWaySwapBalance)
     .minus(veNewoBalance)
+    .minus(sushiswapBalance)
     .div(BigDecimal.fromString("1000000000000000000"))
 
   return circulatingSupply
